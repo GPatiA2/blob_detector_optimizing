@@ -33,7 +33,7 @@ def load_dataset(tag_path, im_path):
         path = os.path.join(im_path, it[0])
         im = cv2.imread(path)
         im_t = TraditionalClassifier().transforms()(im)
-        dataset.append(im_t, it[1])
+        dataset.append((im_t, it[1]))
 
     return dataset
 
@@ -42,4 +42,26 @@ if __name__ == "__main__":
     opt = options()
 
     dataset = load_dataset(opt.tags_path, opt.image_path)
+
+    print("POSITIVE SAMPLES ", len(list(filter(lambda x: x[1] == 1, dataset))))
+    print("NEGATIVE SAMPLES ", len(list(filter(lambda x: x[1] == 0, dataset))))
+
+    mp = TraditionalClassifier().get_max_params()
+
+    print("Dataset loaded")
+
+    ga_instance = BlobGA(dataset, mp, opt.pop_size, opt.generations, opt.crossover, opt.crossover_prob, opt.mutation, opt.mutation_prob, opt.selection)
+    
+    ga_instance.algorithm.summary()
+    
+    input("Press enter to run algorithm")
+
+    bs= ga_instance.run()
+    
+    ga_instance.algorithm.plot_fitness()
+    ga_instance.algorithm.plot_genes()
+    ga_instance.algorithm.plot_new_solution_rate()
+
+    print(bs)
+    print(ga_instance.decode_params(bs[0]))
 
